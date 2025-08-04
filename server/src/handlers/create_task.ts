@@ -1,18 +1,27 @@
 
+import { db } from '../db';
+import { tasksTable } from '../db/schema';
 import { type CreateTaskInput, type Task } from '../schema';
 
 export async function createTask(input: CreateTaskInput, userId: number): Promise<Task> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is to create a new task for the authenticated user,
-    // persist it in the database, and return the created task with generated ID.
-    return Promise.resolve({
-        id: 1, // Placeholder ID
+  try {
+    // Insert task record
+    const result = await db.insert(tasksTable)
+      .values({
         user_id: userId,
         title: input.title,
         description: input.description || null,
         due_date: input.due_date || null,
-        completed: false,
-        created_at: new Date(),
-        updated_at: new Date()
-    } as Task);
+        completed: false // Default value from schema
+      })
+      .returning()
+      .execute();
+
+    // Return the created task
+    const task = result[0];
+    return task;
+  } catch (error) {
+    console.error('Task creation failed:', error);
+    throw error;
+  }
 }
